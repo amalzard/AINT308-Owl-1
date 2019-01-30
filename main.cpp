@@ -118,16 +118,20 @@ int main(int argc, char *argv[])
                 Ry=RyC;Rx=RxC;Ly=LyC;Lx=LxC;
                 break;
             case'z': //move neck left
-                while (1670 > Neck > 1380) {
-                    Neck = Neck - 20;
-                }
-                Neck=Neck-10;
+				if (Neck > 1380 && 1670 > Neck) {
+					Neck = Neck - 20;
+				}
+				else {
+					Neck = Neck - 10;
+				}
                 break;
             case'x': //move neck right
-                while (1670 > Neck > 1380) {
+                if (Neck > 1380 && 1670 > Neck) {
                     Neck = Neck + 20;
-                }
-                Neck=Neck+10;
+				}
+				else {
+					Neck = Neck + 10;
+				}
                 break;
             case'a': //neck center
                 Neck=NeckC;
