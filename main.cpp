@@ -30,6 +30,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <math.h>
+
 #include <sys/types.h>
 //#include <unistd.h>
 
@@ -47,8 +49,13 @@ using namespace cv;
 
 
 
+
+
 int main(int argc, char *argv[])
 {
+    int neckSwitch = 0;
+
+
     char receivedStr[1024];
     ostringstream CMDstream; // string packet
     string CMD;
@@ -72,6 +79,9 @@ int main(int argc, char *argv[])
     Rx = RxC; Lx = LxC;
     Ry = RyC; Ly = LyC;
     Neck= NeckC;
+
+# define M_PI           3.14159265358979323846  /* pi */
+
 
     const Mat OWLresult;// correlation result passed back from matchtemplate
     cv::Mat Frame;
@@ -118,19 +128,109 @@ int main(int argc, char *argv[])
                 Ry=RyC;Rx=RxC;Ly=LyC;Lx=LxC;
                 break;
             case'z': //move neck left
-                while (1670 > Neck > 1380) {
-                    Neck = Neck - 20;
+
+                            if (Neck > 1380 && 1670 > Neck) {
+                                Neck = Neck - 20;
+                            }
+                            else {
+                                Neck = Neck - 10;
+                            }
+                            cout << Neck;
+                            break;
+              case'x': //move neck left and right
+                while(1) {
+                    double inc = 0.05;
+                    for (double i = 0; i < 2*M_PI; i = i + inc) {
+                        Neck = int((sin(i) * 425) + NeckC);
+                        CMDstream.str("");
+                        CMDstream.clear();
+                        CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                        CMD = CMDstream.str();
+                        RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+                        if (!cap.read(Frame))
+                        {
+                            cout  << "Could not open the input video: " << source << endl;
+                            //         break;
+                        }
+                        Mat FrameFlpd; cv::flip(Frame,FrameFlpd,1); // Note that Left/Right are reversed now
+                        //Mat Gray; cv::cvtColor(Frame, Gray, cv::COLOR_BGR2GRAY);
+                        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
+                        Left= FrameFlpd( Rect(0, 0, 640, 480)); // using a rectangle
+                        Right=FrameFlpd( Rect(640, 0, 640, 480)); // using a rectangle
+                        Mat RightCopy;
+                        Right.copyTo(RightCopy);
+                        rectangle( RightCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
+                        imshow("Left",Left);imshow("Right", RightCopy);
+                        waitKey(2); // display the images
+                        //waitKey(10);
+                    }
+
                 }
-                Neck=Neck-10;
-                break;
-            case'x': //move neck right
-                while (1670 > Neck > 1380) {
-                    Neck = Neck + 20;
-                }
-                Neck=Neck+10;
-                break;
+                    break;
             case'a': //neck center
                 Neck=NeckC;
+                break;
+            case'y': //stereo eyes
+                Rx = 1545 - 325;
+                Lx = 1515 - 325;
+                while(1) {
+                    for (int i = 0; i < 325; i++) {
+                        Rx = Rx + 2;
+                        Lx = Lx + 2;
+
+                        CMDstream.str("");
+                        CMDstream.clear();
+                        CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                        CMD = CMDstream.str();
+                        RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+                        if (!cap.read(Frame))
+                        {
+                            cout  << "Could not open the input video: " << source << endl;
+                            //         break;
+                        }
+                        Mat FrameFlpd; cv::flip(Frame,FrameFlpd,1); // Note that Left/Right are reversed now
+                        //Mat Gray; cv::cvtColor(Frame, Gray, cv::COLOR_BGR2GRAY);
+                        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
+                        Left= FrameFlpd( Rect(0, 0, 640, 480)); // using a rectangle
+                        Right=FrameFlpd( Rect(640, 0, 640, 480)); // using a rectangle
+                        Mat RightCopy;
+                        Mat LeftCopy;
+                        Right.copyTo(RightCopy);
+                        Left.copyTo(LeftCopy);
+                        rectangle( RightCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
+                        rectangle( LeftCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
+                        imshow("Left",LeftCopy);imshow("Right", RightCopy);
+                        waitKey(1); // display the images
+                    }
+                    for (int i = 0; i < 325; i++) {
+                        Rx = Rx - 2;
+                        Lx = Lx - 2;
+
+                        CMDstream.str("");
+                        CMDstream.clear();
+                        CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                        CMD = CMDstream.str();
+                        RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+                        if (!cap.read(Frame))
+                        {
+                            cout  << "Could not open the input video: " << source << endl;
+                            //         break;
+                        }
+                        Mat FrameFlpd; cv::flip(Frame,FrameFlpd,1); // Note that Left/Right are reversed now
+                        //Mat Gray; cv::cvtColor(Frame, Gray, cv::COLOR_BGR2GRAY);
+                        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
+                        Left= FrameFlpd( Rect(0, 0, 640, 480)); // using a rectangle
+                        Right=FrameFlpd( Rect(640, 0, 640, 480)); // using a rectangle
+                        Mat RightCopy;
+                        Right.copyTo(RightCopy);
+                        rectangle( RightCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
+                        imshow("Left",Left);imshow("Right", RightCopy);
+                        waitKey(1); // display the images
+                    }
+                }
                 break;
             case'm': //down arrow
                 Ry=Ry-10;Ly=Ly-10;
@@ -240,6 +340,8 @@ int main(int argc, char *argv[])
 
             } // end if ZMCC
         } // end while outer loop
+
+
 #ifdef _WIN32
         closesocket(u_sock);
 #else
