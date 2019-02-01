@@ -185,24 +185,7 @@ int main(int argc, char *argv[])
                         CMD = CMDstream.str();
                         RxPacket= OwlSendPacket (u_sock, CMD.c_str());
 
-                        if (!cap.read(Frame))
-                        {
-                            cout  << "Could not open the input video: " << source << endl;
-                            //         break;
-                        }
-                        Mat FrameFlpd; cv::flip(Frame,FrameFlpd,1); // Note that Left/Right are reversed now
-                        //Mat Gray; cv::cvtColor(Frame, Gray, cv::COLOR_BGR2GRAY);
-                        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
-                        Left= FrameFlpd( Rect(0, 0, 640, 480)); // using a rectangle
-                        Right=FrameFlpd( Rect(640, 0, 640, 480)); // using a rectangle
-                        Mat RightCopy;
-                        Mat LeftCopy;
-                        Right.copyTo(RightCopy);
-                        Left.copyTo(LeftCopy);
-                        rectangle( RightCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
-                        rectangle( LeftCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
-                        imshow("Left",LeftCopy);imshow("Right", RightCopy);
-                        waitKey(1); // display the images
+
                     }
                     for (int i = 0; i < 325; i++) {
                         Rx = Rx - 2;
@@ -214,26 +197,67 @@ int main(int argc, char *argv[])
                         CMD = CMDstream.str();
                         RxPacket= OwlSendPacket (u_sock, CMD.c_str());
 
-                        if (!cap.read(Frame))
-                        {
-                            cout  << "Could not open the input video: " << source << endl;
-                            //         break;
-                        }
-                        Mat FrameFlpd; cv::flip(Frame,FrameFlpd,1); // Note that Left/Right are reversed now
-                        //Mat Gray; cv::cvtColor(Frame, Gray, cv::COLOR_BGR2GRAY);
-                        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
-                        Left= FrameFlpd( Rect(0, 0, 640, 480)); // using a rectangle
-                        Right=FrameFlpd( Rect(640, 0, 640, 480)); // using a rectangle
-                        Mat RightCopy;
-                        Right.copyTo(RightCopy);
-                        rectangle( RightCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
-                        imshow("Left",Left);imshow("Right", RightCopy);
-                        waitKey(1); // display the images
+
                     }
                 }
                 break;
+            case'u': //Monocular Vision Demo
+                Rx = RxC;
+                Lx = LxC;
+                Ry = RyC;
+                Ly = LyC;
+
+                for (int i = 0; i < 10; i++)
+                {
+                    int randXL = rand() % 670 + 1180;
+                    int randXR = rand() % 690 + 1200;
+                    int randYL = rand() % 820 + 1180;
+                    int randYR = rand() % 880 + 1120;
+
+                    Ry = randYR;
+                    Ly = randYL;
+                    Rx = randXR;
+                    Lx = randXL;
+                    CMDstream.str("");
+                    CMDstream.clear();
+                    CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                    CMD = CMDstream.str();
+                    RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+                    waitKey(1000);
+
+                }
+                Rx = 1545;
+                Lx = 1515;
+                Ry = RyC;
+                Ly = LyC;
+                break;
             case'm': //down arrow
                 Ry=Ry-10;Ly=Ly-10;
+                break;
+            case'r': //down arrow
+                while(1) {
+                    double inc = 0.05;
+                    for (double i = 0; i < 2*M_PI; i = i + inc) {
+                        Rx = int((sin(i) * 250) + RxC);
+                        Lx = int((sin(i) * 250) + LxC);
+                        Ry = int((sin(i/2) * 305) + RyC);
+                        Ly = int((-sin(i/2) * 305) + LyC);
+                        int testL = 0;
+                        testL = Ly;
+                        int testR = 0;
+                        testR = Ry;
+                        CMDstream.str("");
+                        CMDstream.clear();
+                        CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                        CMD = CMDstream.str();
+                        RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+                        waitKey(10);
+
+
+                    }
+
+                }
                 break;
             case'j': //left arrow
                 Rx=Rx-10;Lx=Lx-10;
