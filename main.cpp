@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
             case'm': //down arrow
                 Ry=Ry-10;Ly=Ly-10;
                 break;
-            case'r': //down arrow
+            case'r': //eye roll
                 while(1) {
                     double inc = 0.05;
                     for (double i = 0; i < 2*M_PI; i = i + inc) {
@@ -258,6 +258,60 @@ int main(int argc, char *argv[])
                     }
 
                 }
+                break;
+            case'o': //eye roll
+                while(1) {
+                    //center before loop. Put eye up movement on loop
+                    double inc = 0.05;
+                    //First quarter
+                    Ry = 2000;
+                    Ly = 2000;
+                    for (double i = M_PI; i > 0; i = i - inc) {
+                        if (Rx < 1750 && Lx < 1750) {
+                            Rx = int((sin(i) * 250) + RxC);
+                            Lx = int((sin(i) * 250) + LxC);
+                        }
+
+                        Ry = int((sin(i/2) * 305) + RyC);
+                        Ly = int((-sin(i/2) * 305) + LyC);
+                        int testL = 0;
+                        testL = Ly;
+                        int testR = 0;
+                        testR = Ry;
+                        CMDstream.str("");
+                        CMDstream.clear();
+                        CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                        CMD = CMDstream.str();
+                        RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+                        waitKey(30);
+
+
+                    }
+
+                    for (double i = M_PI / 2; i < 2 * M_PI; i = i + inc) {
+                        if (Rx > 1310 && Lx > 1310) {
+                            Rx = int((sin(i) * 250) + RxC);
+                            Lx = int((sin(i) * 250) + LxC);
+                        }
+                        Ry = int((sin(i/2) * 305) + RyC);
+                        Ly = int((-sin(i/2) * 305) + LyC);
+                        int testL = 0;
+                        testL = Ly;
+                        int testR = 0;
+                        testR = Ry;
+                        CMDstream.str("");
+                        CMDstream.clear();
+                        CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                        CMD = CMDstream.str();
+                        RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+                        waitKey(30);
+
+
+                    }
+                    break;
+}
                 break;
             case'j': //left arrow
                 Rx=Rx-10;Lx=Lx-10;
