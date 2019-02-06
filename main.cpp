@@ -127,16 +127,6 @@ int main(int argc, char *argv[])
             case'q': //center eyes
                 Ry=RyC;Rx=RxC;Ly=LyC;Lx=LxC;
                 break;
-            case'z': //move neck left
-
-                            if (Neck > 1380 && 1670 > Neck) {
-                                Neck = Neck - 20;
-                            }
-                            else {
-                                Neck = Neck - 10;
-                            }
-                            cout << Neck;
-                            break;
               case'x': //move neck left and right
                 while(1) {
                     double inc = 0.05;
@@ -172,8 +162,8 @@ int main(int argc, char *argv[])
                 Neck=NeckC;
                 break;
             case'y': //stereo eyes
-                Rx = 1545 - 325;
-                Lx = 1515 - 325;
+                Rx = RxC - 325;
+                Lx = LxC - 325;
                 while(1) {
                     for (int i = 0; i < 325; i++) {
                         Rx = Rx + 2;
@@ -184,6 +174,7 @@ int main(int argc, char *argv[])
                         CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
                         CMD = CMDstream.str();
                         RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+                        waitKey(10);
 
 
                     }
@@ -196,6 +187,7 @@ int main(int argc, char *argv[])
                         CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
                         CMD = CMDstream.str();
                         RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+                        waitKey(10);
 
 
                     }
@@ -207,23 +199,50 @@ int main(int argc, char *argv[])
                 Ry = RyC;
                 Ly = LyC;
 
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 100; i++)
                 {
-                    int randXL = rand() % 670 + 1180;
-                    int randXR = rand() % 690 + 1200;
-                    int randYL = rand() % 820 + 1180;
-                    int randYR = rand() % 880 + 1120;
+                    if (i % 10 == 0) {
+                        int randXL = rand() % 670 + 1180;
+                        int randXR = rand() % 690 + 1200;
+                        int randYL = rand() % 820 + 1180;
+                        int randYR = rand() % 880 + 1120;
 
-                    Ry = randYR;
-                    Ly = randYL;
-                    Rx = randXR;
-                    Lx = randXL;
+                        Ry = randYR;
+                        Ly = randYL;
+                        Rx = randXR;
+                        Lx = randXL;
+                        waitKey(10);
+                    }
+
+                    //if(i % 2 == 0) {
+                        if (!cap.read(Frame))
+                        {
+                            cout  << "Could not open the input video: " << source << endl;
+                            //         break;
+                        }
+                        Mat FrameFlpd; cv::flip(Frame,FrameFlpd,1); // Note that Left/Right are reversed now
+                        //Mat Gray; cv::cvtColor(Frame, Gray, cv::COLOR_BGR2GRAY);
+                        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
+                        Left= FrameFlpd( Rect(0, 0, 640, 480)); // using a rectangle
+                        Right=FrameFlpd( Rect(640, 0, 640, 480)); // using a rectangle
+                        Mat RightCopy;
+                        Right.copyTo(RightCopy);
+                        rectangle( RightCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
+                        imshow("Left",Left);imshow("Right", RightCopy);
+                        waitKey(10); // display the images
+                        //waitKey(10);
+                    //}
+
+
+
                     CMDstream.str("");
                     CMDstream.clear();
                     CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
                     CMD = CMDstream.str();
                     RxPacket= OwlSendPacket (u_sock, CMD.c_str());
-                    waitKey(1000);
+
+
+
 
                 }
                 Rx = 1545;
@@ -234,8 +253,70 @@ int main(int argc, char *argv[])
             case'm': //down arrow
                 Ry=Ry-10;Ly=Ly-10;
                 break;
+            case'n': //down arrow
+                Ry=2000;
+                Ly = 1180;
+                break;
+            case'e': //look over shoulder
+
+                while(1) {
+                    //center before loop. Put eye up movement on loop
+                    Rx = RxC;
+                    Lx = LxC;
+                    Ry = RyC;
+                    Ly = LyC;
+                    Neck = NeckC;
+
+                    double inc = 0.05;
+                    for (double i = 0; i < 3 * M_PI / 2 ; i = i + inc) {
+                            Rx = int((sin(i) * 250) + RxC);
+                            Lx = int((sin(i) * 250) + LxC);
+                            Ry = 1730;
+                            Ly = 1378;
+
+
+                            Neck = NeckC - int((sin(i) * 325));
+
+                        CMDstream.str("");
+                        CMDstream.clear();
+                        CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                        CMD = CMDstream.str();
+                        RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+                        waitKey(1);
+
+                        if (!cap.read(Frame))
+                        {
+                            cout  << "Could not open the input video: " << source << endl;
+                            //         break;
+                        }
+                        Mat FrameFlpd; cv::flip(Frame,FrameFlpd,1); // Note that Left/Right are reversed now
+                        //Mat Gray; cv::cvtColor(Frame, Gray, cv::COLOR_BGR2GRAY);
+                        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
+                        Left= FrameFlpd( Rect(0, 0, 640, 480)); // using a rectangle
+                        Right=FrameFlpd( Rect(640, 0, 640, 480)); // using a rectangle
+                        Mat RightCopy;
+                        Right.copyTo(RightCopy);
+                        rectangle( RightCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
+                        imshow("Left",Left);imshow("Right", RightCopy);
+                        waitKey(2); // display the images
+                        //waitKey(10);
+
+
+                    }
+
+
+                    Rx = RxC;
+                    Lx = LxC;
+                    Ry = RyC;
+                    Ly = LyC;
+                    Neck = NeckC;
+                    break;
+}
+                break;
             case'r': //eye roll
                 while(1) {
+
                     double inc = 0.05;
                     for (double i = 0; i < 2*M_PI; i = i + inc) {
                         Rx = int((sin(i) * 250) + RxC);
@@ -262,14 +343,23 @@ int main(int argc, char *argv[])
             case'o': //eye roll
                 while(1) {
                     //center before loop. Put eye up movement on loop
+                    Rx = RxC;
+                    Lx = LxC;
+                    Ry = RyC;
+                    Ly = LyC;
+                    Neck = NeckC;
                     double inc = 0.05;
                     //First quarter
-                    Ry = 2000;
-                    Ly = 2000;
+                    for (int i = 0; i > 380; i++) {
+                        Ry = Ry + i;
+                        Ly = Ly + i;
+                        waitKey(1);
+                    }
                     for (double i = M_PI; i > 0; i = i - inc) {
                         if (Rx < 1750 && Lx < 1750) {
                             Rx = int((sin(i) * 250) + RxC);
                             Lx = int((sin(i) * 250) + LxC);
+                            Neck = NeckC - int((sin(i) * 425));
                         }
 
                         Ry = int((sin(i/2) * 305) + RyC);
@@ -293,6 +383,7 @@ int main(int argc, char *argv[])
                         if (Rx > 1310 && Lx > 1310) {
                             Rx = int((sin(i) * 250) + RxC);
                             Lx = int((sin(i) * 250) + LxC);
+                            Neck = NeckC - int((sin(i) * 425));
                         }
                         Ry = int((sin(i/2) * 305) + RyC);
                         Ly = int((-sin(i/2) * 305) + LyC);
@@ -310,6 +401,79 @@ int main(int argc, char *argv[])
 
 
                     }
+                    Rx = RxC;
+                    Lx = LxC;
+                    Ry = RyC;
+                    Ly = LyC;
+                    Neck = NeckC;
+                    break;
+}
+                break;
+            case'l': //eye roll test case 2
+                while(1) {
+                    //center before loop. Put eye up movement on loop
+                    Rx = RxC;
+                    Lx = LxC;
+                    Ry = RyC;
+                    Ly = LyC;
+                    Neck = NeckC;
+
+                    double inc = 0.05;
+                    bool sinSwitch = false;
+                    for (double i = 0; i < 3 * M_PI / 2 ; i = i + inc) {
+                        double j = i - (3 * M_PI / 2) + M_PI;
+                        //if (Rx < 1750 && Lx < 1750) {
+                            Rx = int((sin(i) * 250) + RxC);
+                            Lx = int((sin(i) * 250) + LxC);
+                            if (sinSwitch == false) {
+                                Ry = int((cos(i) * 350) + RyC);
+                                Ly = int((-cos(i) * 350) + LyC);
+                                if (Ry < RyC && Ly > LyC) {
+                                    sinSwitch = true;
+                                }
+                            } else {
+
+                                Ry = int((sin(j) * 350) + RyC);
+                                Ly = int((-sin(j) * 350) + LyC);
+                               }
+
+
+                            Neck = NeckC - int((sin(i) * 100));
+
+                        CMDstream.str("");
+                        CMDstream.clear();
+                        CMDstream << Rx << " " << Ry << " " << Lx << " " << Ly << " " << Neck;
+                        CMD = CMDstream.str();
+                        RxPacket= OwlSendPacket (u_sock, CMD.c_str());
+
+                        waitKey(50);
+
+                        if (!cap.read(Frame))
+                        {
+                            cout  << "Could not open the input video: " << source << endl;
+                            //         break;
+                        }
+                        Mat FrameFlpd; cv::flip(Frame,FrameFlpd,1); // Note that Left/Right are reversed now
+                        //Mat Gray; cv::cvtColor(Frame, Gray, cv::COLOR_BGR2GRAY);
+                        // Split into LEFT and RIGHT images from the stereo pair sent as one MJPEG iamge
+                        Left= FrameFlpd( Rect(0, 0, 640, 480)); // using a rectangle
+                        Right=FrameFlpd( Rect(640, 0, 640, 480)); // using a rectangle
+                        Mat RightCopy;
+                        Right.copyTo(RightCopy);
+                        rectangle( RightCopy, target, Scalar::all(255), 2, 8, 0 ); // draw white rect
+                        imshow("Left",Left);imshow("Right", RightCopy);
+                        waitKey(2); // display the images
+                        //waitKey(10);
+
+
+                    }
+
+
+                    Rx = RxC;
+                    Lx = LxC;
+                    Ry = RyC;
+                    Ly = LyC;
+                    Neck = NeckC;
                     break;
 }
                 break;
